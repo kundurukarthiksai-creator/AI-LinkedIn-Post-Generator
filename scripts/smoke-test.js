@@ -1,28 +1,25 @@
 const http = require('http');
+const net = require('net');
 const { spawn } = require('child_process');
 
-const port = Number(process.env.SMOKE_PORT || process.env.PORT || 3100);
-const healthUrl = `http://127.0.0.1:${port}/api/health`;
+function reservePort() {
+  const requestedPort = process.env.SMOKE_PORT || process.env.PORT;
+  if (requestedPort) {
+    return Promise.resolve(Number(requestedPort));
+  }
 
-const server = spawn(process.execPath, ['server.js'], {
-  env: {
-    ...process.env,
-    PORT: String(port),
-    MOCK_LINKEDIN_PUBLISH: 'true',
-    NODE_ENV: 'test',
-  },
-  stdio: ['ignore', 'pipe', 'pipe'],
-});
+  return new Promise((resolve, reject) => {
+    const probe = net.createServer();
+    probe.unref();
+    probe.on('error', reject);
+    probe.listen(0, '127.0.0.1', () => {
+      const { port } = probe.address();
+      probe.close(() => resolve(port));
+    });
+  });
+}
 
-let serverOutput = '';
-server.stdout.on('data', (chunk) => {
-  serverOutput += chunk.toString();
-});
-server.stderr.on('data', (chunk) => {
-  serverOutput += chunk.toString();
-});
-
-function requestHealth() {
+function requestHealth(healthUrl) {
   return new Promise((resolve, reject) => {
     const req = http.get(healthUrl, (res) => {
       let body = '';
@@ -50,13 +47,13 @@ function requestHealth() {
   });
 }
 
-async function waitForHealth() {
+async function waitForHealth(healthUrl) {
   const deadline = Date.now() + 10000;
   let lastError;
 
   while (Date.now() < deadline) {
     try {
-      return await requestHealth();
+      return await requestHealth(healthUrl);
     } catch (error) {
       lastError = error;
       await new Promise((resolve) => setTimeout(resolve, 250));
@@ -67,8 +64,35 @@ async function waitForHealth() {
 }
 
 async function main() {
+  const port = await reservePort();
+  const healthUrl = `http://127.0.0.1:${port}/api/health`;
+  let serverOutput = '';
+
+  const server = spawn(process.execPath, ['server.js'], {
+    env: {
+      ...process.env,
+      PORT: String(port),
+      MOCK_LINKEDIN_PUBLISH: 'true',
+      NODE_ENV: 'test',
+    },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+
+  server.stdout.on('data', (chunk) => {
+    serverOutput += chunk.toString();
+  });
+  server.stderr.on('data', (chunk) => {
+    serverOutput += chunk.toString();
+  });
+
+  server.on('error', (error) => {
+    console.error('Failed to start server process.');
+    console.error(error.message);
+    process.exitCode = 1;
+  });
+
   try {
-    const health = await waitForHealth();
+    const health = await waitForHealth(healthUrl);
     if (!health.success) {
       throw new Error(`Health payload did not report success: ${JSON.stringify(health)}`);
     }
@@ -86,10 +110,8 @@ async function main() {
   }
 }
 
-server.on('error', (error) => {
-  console.error('Failed to start server process.');
+main().catch((error) => {
+  console.error('Smoke test crashed.');
   console.error(error.message);
   process.exitCode = 1;
 });
-
-main();
