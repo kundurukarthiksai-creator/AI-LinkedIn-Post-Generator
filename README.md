@@ -27,6 +27,15 @@ Captured locally in mock publish mode, where posts are not sent to LinkedIn.
 - Supports mock publish mode for local testing.
 - Separates routes, controllers, services, upload middleware, and environment config.
 
+## Safety And Limits
+
+- Publishing is intentionally gated. The app can generate and preview drafts without posting.
+- Real LinkedIn publishing requires valid Composio/LinkedIn configuration and an explicit `confirmed: true` request.
+- Local smoke tests use mock publish mode and do not send posts to LinkedIn.
+- Drafts are stored in memory, so they reset when the server restarts.
+- The current app does not include multi-user authentication, scheduling, or analytics.
+- Treat generated copy as a draft that should be reviewed before publishing.
+
 ## Architecture
 
 ```text
