@@ -1,5 +1,7 @@
 # AI LinkedIn Post Generator
 
+[![CI](https://github.com/kundurukarthiksai-creator/AI-LinkedIn-Post-Generator/actions/workflows/ci.yml/badge.svg)](https://github.com/kundurukarthiksai-creator/AI-LinkedIn-Post-Generator/actions/workflows/ci.yml)
+
 Preview-first LinkedIn post automation built with Node.js, Express, Gemini/OpenAI, Cloudinary, and Composio LinkedIn tooling.
 
 ## What It Does
@@ -119,7 +121,8 @@ Verified locally:
 - JavaScript syntax check passed.
 - `npm ci --ignore-scripts --no-audit --no-fund` passed after lockfile repair.
 - Mock-mode server health check passed at `/api/health`.
-- Smoke-test command added: `npm run smoke`.
+- Smoke-test command added and verified: `npm run smoke`.
+- GitHub Actions CI runs `npm ci` and `npm run smoke` on pushes and pull requests.
 
 ## Planned Improvements
 
