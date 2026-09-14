@@ -1,196 +1,128 @@
-# AI LinkedIn Automation Assistant
+# AI LinkedIn Post Generator
 
-An AI-powered LinkedIn automation system built with **Node.js**, **Express**, **OpenAI**, **Cloudinary**, and **Composio (MCP)**. It generates professional posts, uploads images, shows a preview, and only publishes after explicit user confirmation.
+Preview-first LinkedIn post automation built with Node.js, Express, Gemini/OpenAI, Cloudinary, and Composio LinkedIn tooling.
+
+## What It Does
+
+This app turns project updates, achievements, certificates, and events into polished LinkedIn post drafts. It supports optional image upload, shows a preview, and blocks publishing unless the user explicitly confirms the final draft.
+
+The important design choice is safety: generation and publishing are separate steps.
 
 ## Features
 
-- **AI post generator** — Turn achievements, projects, certificates, or events into polished LinkedIn copy
-- **Automatic hashtags** — OpenAI returns 5–8 relevant hashtags
-- **Image uploads** — Multer + Cloudinary for public image URLs
-- **Preview-first workflow** — Never publishes without confirmation
-- **LinkedIn publishing** — Composio toolkit (`LINKEDIN_CREATE_LINKED_IN_POST`)
-- **Simple web UI** — Generate, preview, confirm, publish from the browser
-- **Modular architecture** — Routes, controllers, and services separated for clarity
+- Generates LinkedIn-ready post copy and hashtags with Gemini or OpenAI.
+- Uploads optional images through Cloudinary.
+- Creates a preview draft before publishing.
+- Requires `confirmed: true` before any LinkedIn publish attempt.
+- Supports mock publish mode for local testing.
+- Separates routes, controllers, services, upload middleware, and environment config.
 
-## Workflow
+## Architecture
 
-```
-User input (achievement / project / certificate / event)
-        ↓
-OpenAI generates post + hashtags
-        ↓
-(Optional) Cloudinary uploads image
-        ↓
-Preview shown — "Do you want to publish?"
-        ↓
-User confirms (confirmed: true)
-        ↓
-Composio publishes to LinkedIn
+```text
+Browser UI
+  -> Express routes
+  -> Post controller
+  -> AI generation service
+  -> Optional Cloudinary upload
+  -> In-memory draft store
+  -> Explicit confirmation
+  -> Composio LinkedIn publish service
 ```
 
-## Project structure
+## Tech Stack
 
-```
-linkedin-ai-automation/
-├── server.js                 # Express entry point
-├── config/env.js             # Environment config
-├── routes/postRoutes.js      # API routes
-├── controllers/postController.js
-├── services/
-│   ├── openaiService.js      # Post generation
-│   ├── cloudinaryService.js  # Image upload
-│   ├── linkedinService.js    # Composio / LinkedIn
-│   └── draftStore.js         # Preview drafts (in-memory)
-├── middleware/
-│   ├── upload.js             # Multer
-│   └── errorHandler.js
-├── uploads/                  # Temporary files
-├── public/                   # Frontend UI
-├── .env.example
-├── package.json
-└── README.md
-```
+- Node.js
+- Express
+- Gemini / OpenAI
+- Cloudinary
+- Composio LinkedIn toolkit
+- Multer
+- Vanilla HTML/CSS/JavaScript
 
-## Installation
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) 18+
-- [OpenAI API key](https://platform.openai.com/api-keys)
-- [Cloudinary account](https://cloudinary.com/)
-- [Composio account](https://platform.composio.dev/) (for LinkedIn publishing)
-
-### Steps
-
-1. **Clone or open the project**
-
-   ```bash
-   cd linkedin-ai-automation
-   ```
-
-2. **Install dependencies**
-
-   ```bash
-   npm install
-   ```
-
-3. **Configure environment variables**
-
-   ```bash
-   copy .env.example .env
-   ```
-
-   Edit `.env` and add your keys:
-
-   | Variable | Description |
-   |----------|-------------|
-   | `OPENAI_API_KEY` | OpenAI API key |
-   | `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name |
-   | `CLOUDINARY_API_KEY` | Cloudinary API key |
-   | `CLOUDINARY_API_SECRET` | Cloudinary API secret |
-   | `COMPOSIO_API_KEY` | Composio API key |
-   | `COMPOSIO_USER_ID` | Composio user/session ID (default: `default`) |
-   | `MOCK_LINKEDIN_PUBLISH` | Set `true` to test without LinkedIn |
-
-4. **Start the server**
-
-   ```bash
-   npm start
-   ```
-
-5. **Open the UI**
-
-   Visit [http://localhost:3000](http://localhost:3000)
-
-## Composio + LinkedIn setup (MCP)
-
-1. Sign up at [Composio](https://platform.composio.dev/)
-2. Create a project and copy your **API key** into `.env`
-3. Connect **LinkedIn** for your `COMPOSIO_USER_ID`:
-   - Dashboard → Connected accounts → Add LinkedIn (OAuth)
-4. Optional: run `LINKEDIN_GET_MY_INFO` in Composio to find your person ID, then set:
-
-   ```env
-   LINKEDIN_AUTHOR_URN=urn:li:person:YOUR_ID
-   ```
-
-### MCP in Cursor
-
-You can also use Composio’s LinkedIn MCP server in Cursor for agent-driven posting:
-
-- Docs: [Composio LinkedIn MCP](https://mcp.composio.dev/linkedin)
-- This backend uses the same LinkedIn tools via `@composio/core` for programmatic publish after confirmation.
-
-## API routes
-
-Base URL: `http://localhost:3000/api`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/health` | Health check |
-| `GET` | `/linkedin/status` | Composio / LinkedIn config status |
-| `POST` | `/generate-post` | Generate post with OpenAI |
-| `POST` | `/upload-image` | Upload image (multipart `image`) |
-| `POST` | `/preview-post` | Create preview + `draftId` |
-| `POST` | `/publish-post` | Publish (requires `confirmed: true`) |
-
-Aliases without `/api` prefix also work (e.g. `/generate-post`).
-
-### Example: generate post
+## Local Setup
 
 ```bash
-curl -X POST http://localhost:3000/api/generate-post \
-  -H "Content-Type: application/json" \
-  -d "{\"achievement\": \"I completed my AI Portfolio Dashboard project using Python and OpenAI.\"}"
+npm install
+copy .env.example .env
+npm start
 ```
 
-### Example: preview
+Then open:
 
-```bash
-curl -X POST http://localhost:3000/api/preview-post \
-  -H "Content-Type: application/json" \
-  -d "{\"content\": \"Your post body...\", \"hashtags\": [\"#AI\", \"#Python\"]}"
+```text
+http://localhost:3000
 ```
 
-### Example: publish (only after user confirms)
+## Environment Variables
 
-```bash
-curl -X POST http://localhost:3000/api/publish-post \
-  -H "Content-Type: application/json" \
-  -d "{\"draftId\": \"YOUR_DRAFT_ID\", \"confirmed\": true}"
-```
+Use `.env.example` as the source of truth.
 
-> Publishing is **blocked** unless `confirmed` is exactly `true`.
+Required for AI generation:
 
-## Screenshots
+- `AI_PROVIDER`
+- `GEMINI_API_KEY` or `OPENAI_API_KEY`
 
-_Add screenshots of the UI here after running locally:_
+Required for image upload:
 
-1. Input form (achievement / project / image)
-2. Generated preview with hashtags
-3. Confirmation modal
-4. Success result
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
 
-## Local testing without LinkedIn
+Required for real LinkedIn publishing:
 
-Set in `.env`:
+- `COMPOSIO_API_KEY`
+- `COMPOSIO_USER_ID`
+- `LINKEDIN_AUTHOR_URN` if automatic author discovery is unavailable
+
+For local testing without publishing:
 
 ```env
 MOCK_LINKEDIN_PUBLISH=true
 ```
 
-The full generate → preview → confirm flow works; publish returns a mock success response.
+## API
 
-## Future improvements
+Base URL:
 
-- [ ] Persistent draft storage (Redis / MongoDB)
-- [ ] User authentication and multi-account support
-- [ ] Schedule posts for later
-- [ ] Post analytics from LinkedIn API
-- [ ] Draft history and edit-before-publish UI
-- [ ] Webhook triggers via Composio
-- [ ] Docker deployment
+```text
+http://localhost:3000/api
+```
 
-## License
+Endpoints:
 
-MIT
+- `GET /health`
+- `GET /linkedin/status`
+- `POST /generate-post`
+- `POST /upload-image`
+- `POST /preview-post`
+- `POST /publish-post`
+
+Publishing is blocked unless:
+
+```json
+{
+  "confirmed": true
+}
+```
+
+## Verification Status
+
+Verified locally:
+
+- JavaScript syntax check passed.
+- `npm ci --ignore-scripts --no-audit --no-fund` passed after lockfile repair.
+- Mock-mode server health check passed at `/api/health`.
+
+## Planned Improvements
+
+- Add screenshots.
+- Add a smoke-test script.
+- Persist drafts in Redis or a database.
+- Add user authentication for multi-user use.
+- Add scheduled posts.
+- Add post analytics.
+
+## Resume Angle
+
+Built a preview-first LinkedIn automation service with Node.js, Express, Gemini/OpenAI, Cloudinary, and Composio tooling, blocking publication until explicit user confirmation and separating generation, preview, and publish workflows.
