@@ -10,6 +10,14 @@ This app turns project updates, achievements, certificates, and events into poli
 
 The important design choice is safety: generation and publishing are separate steps.
 
+## Screenshots
+
+Captured locally in mock publish mode, where posts are not sent to LinkedIn.
+
+![Desktop UI](docs/images/ui-desktop.png)
+
+![Mobile UI](docs/images/ui-mobile.png)
+
 ## Features
 
 - Generates LinkedIn-ready post copy and hashtags with Gemini or OpenAI.
@@ -126,7 +134,6 @@ Verified locally:
 
 ## Planned Improvements
 
-- Add screenshots.
 - Persist drafts in Redis or a database.
 - Add user authentication for multi-user use.
 - Add scheduled posts.
