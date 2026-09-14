@@ -54,6 +54,12 @@ Then open:
 http://localhost:3000
 ```
 
+For a quick server health check without real LinkedIn publishing:
+
+```bash
+npm run smoke
+```
+
 ## Environment Variables
 
 Use `.env.example` as the source of truth.
@@ -113,11 +119,11 @@ Verified locally:
 - JavaScript syntax check passed.
 - `npm ci --ignore-scripts --no-audit --no-fund` passed after lockfile repair.
 - Mock-mode server health check passed at `/api/health`.
+- Smoke-test command added: `npm run smoke`.
 
 ## Planned Improvements
 
 - Add screenshots.
-- Add a smoke-test script.
 - Persist drafts in Redis or a database.
 - Add user authentication for multi-user use.
 - Add scheduled posts.
