@@ -1,17 +1,19 @@
 {
   "name": "linkedin-ai-automation",
   "version": "1.0.0",
-  "description": "AI-powered LinkedIn automation with OpenAI, Cloudinary, and Composio",
+  "description": "Preview-first LinkedIn automation with Gemini/OpenAI, Cloudinary, and Composio",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
+    "smoke": "node scripts/smoke-test.js",
     "check-linkedin": "node scripts/check-linkedin-setup.js",
     "connect-linkedin": "node scripts/connect-linkedin.js"
   },
   "keywords": [
     "linkedin",
     "openai",
+    "gemini",
     "automation",
     "composio",
     "mcp"
